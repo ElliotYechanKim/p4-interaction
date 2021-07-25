@@ -21,109 +21,7 @@ var socket = new WebSocket('ws://' + window.location.host + '/ws/draw');
 var url = window.location.href
 const url2 = new URL(url)
 
-if(url2.searchParams.get('type') == 'player1'){
-	window.addEventListener('mousemove', (event) => {
-		//Need to keep track of the mouse relative to canvas size, not the whole html mouse point
-		var leftmargin = (window.innerWidth - w)/2
-		if((leftmargin < event.x && event.x < (window.innerWidth - leftmargin)) && (30 < event.y && event.y < h + 30)){
-			player1.x = event.x - leftmargin
-			player1.y = event.y - 30
-			socket.send("{\"x\" : " + player1.x + ", \"y\" : " + player1.y + ", \"px\" : " + puck.x + ", \"py\" : " + puck.y + ", \"p1s\" : " + player1.score + ", \"p2s\" : " + player2.score + ", \"uid\" : " + 1 + "}" )
-		}
-	})
 
-	socket.onmessage = function(receivedMessage) {
-        var received = JSON.parse(receivedMessage.data);
-        console.log("Received: " + JSON.stringify(received));
-		if(received.uid == 2){
-			player2.x = received.x
-			player2.y = received.y
-			puck.x = received.px
-			puck.y = received.py
-			player1.score = received.p1s
-			player2.score = received.p2s
-		}
-    }
-}
-
-if(url2.searchParams.get('type') == 'player2'){
-	// window.addEventListener('mousemove', (event) => {
-	// 	//Need to keep track of the mouse relative to canvas size, not the whole html mouse point
-	// 	var leftmargin = (window.innerWidth - w)/2
-	// 	if((leftmargin < event.x && event.x < (window.innerWidth - leftmargin)) && (30 < event.y && event.y < h + 30)){
-	// 		player2.x = event.x - leftmargin
-	// 		player2.y = event.y - 30
-	// 		socket.send("{\"x\" : " + player2.x + ", \"y\" : " + player2.y + ", \"px\" : " + puck.x + ", \"py\" : " + puck.y + ", \"p1s\" : " + player1.score + ", \"p2s\" : " + player2.score + ", \"uid\" : " + 2 + "}" )
-	// 	}
-	// })
-
-	window.addEventListener('deviceorientation', (event) => {
-		var x = event.gamma
-		var y = event.beta
-		var leftmargin = (window.innerWidth - w)/2
-		console.log('x : ' + player2.x + ', y : ' + player2.y + ", xx : " + x + ", yy : " + y)
-
-		if(0 < player2.x && player2.x < w && 0 < player2.y && player2.y < h){
-			if(player2.gamma != x){
-				player2.x = player2.x + x
-				player2.gamma = x
-			}
-			if(player2.beta != y){
-				player2.y = player2.y - y
-				player2.beta = y
-			}
-			socket.send("{\"x\" : " + player2.x + ", \"y\" : " + player2.y + ", \"px\" : " + puck.x + ", \"py\" : " + puck.y + ", \"p1s\" : " + player1.score + ", \"p2s\" : " + player2.score + ", \"uid\" : " + 2 + "}" )
-		}
-
-		if(player2.x < 0){
-			player2.x = 1
-		} else if(player2.x > w){
-			player2.x = w - 1
-		}
-
-		if(player2.y < 0){
-			player2.y = 1
-		} else if(player2.y > h){
-			player2.y = h - 1
-		}
-	})
-
-	socket.onmessage = function(receivedMessage) {
-        var received = JSON.parse(receivedMessage.data);
-        console.log("Received: " + JSON.stringify(received));
-        if(received.uid == 1){
-			player1.x = received.x
-			player1.y = received.y
-			puck.x = received.px
-			puck.y = received.py
-			player1.score = received.p1s
-			player2.score = received.p2s
-		}
-    }
-}
-
-if(url2.searchParams.get('type') == 'large'){
-	socket.onmessage = function(receivedMessage) {
-        var received = JSON.parse(receivedMessage.data);
-        console.log("Received: " + JSON.stringify(received));
-        if(received.uid == 1){
-			player1.x = received.x
-			player1.y = received.y
-			puck.x = received.px
-			puck.y = received.py
-			player1.score = received.p1s
-			player2.score = received.p2s
-		}
-		if(received.uid == 2){
-			player2.x = received.x
-			player2.y = received.y
-			puck.x = received.px
-			puck.y = received.py
-			player1.score = received.p1s
-			player2.score = received.p2s
-		}
-    }
-}
 
 class Player {
     constructor() {
@@ -275,4 +173,167 @@ function animate() {
     requestAnimationFrame(animate)
 }
 
-animate()
+function panimate() {
+    ctx.clearRect(0,0,w,h)
+
+    board()
+
+    player1.update()
+
+    puck.update()
+
+    player2.update()
+    
+    requestAnimationFrame(panimate)
+}
+
+var gyroscope = true
+
+if(url2.searchParams.get('type') == 'player1'){
+	
+	if(gyroscope){
+		window.addEventListener('deviceorientation', (event) => {
+			var x = event.gamma
+			var y = event.beta
+			var leftmargin = (window.innerWidth - w)/2
+			console.log('x : ' + player1.x + ', y : ' + player1.y + ", xx : " + x + ", yy : " + y)
+	
+			if(0 < player1.x && player1.x < w/2 && 0 < player1.y && player1.y < h){
+				if(player1.gamma != x){
+					player1.x = player1.x + x
+					player1.gamma = x
+				}
+				if(player1.beta != y){
+					player1.y = player1.y + y
+					player1.beta = y
+				}
+				socket.send("{\"x\" : " + player1.x + ", \"y\" : " + player1.y + ", \"px\" : " + puck.x + ", \"py\" : " + puck.y + ", \"p1s\" : " + player1.score + ", \"p2s\" : " + player2.score + ", \"uid\" : " + 1 + "}" )
+			}
+	
+			if(player1.x <= 0){
+				player1.x = 1
+			} else if(player1.x >= w/2){
+				player1.x = w/2 - 1
+			}
+	
+			if(player1.y <= 0){
+				player1.y = 1
+			} else if(player1.y >= h){
+				player1.y = h - 1
+			}
+		})
+	} else {
+		window.addEventListener('mousemove', (event) => {
+			//Need to keep track of the mouse relative to canvas size, not the whole html mouse point
+			var leftmargin = (window.innerWidth - w)/2
+			if((leftmargin < event.x && event.x < (window.innerWidth - leftmargin)) && (30 < event.y && event.y < h + 30) && event.x < window.innerWidth / 2){
+				player1.x = event.x - leftmargin
+				player1.y = event.y - 30
+				socket.send("{\"x\" : " + player1.x + ", \"y\" : " + player1.y + ", \"px\" : " + puck.x + ", \"py\" : " + puck.y + ", \"p1s\" : " + player1.score + ", \"p2s\" : " + player2.score + ", \"uid\" : " + 1 + "}" )
+			}
+		})
+	}
+	
+	socket.onmessage = function(receivedMessage) {
+        var received = JSON.parse(receivedMessage.data);
+        console.log("Received: " + JSON.stringify(received));
+		if(received.uid == 2){
+			player2.x = received.x
+			player2.y = received.y
+			puck.x = received.px
+			puck.y = received.py
+			player1.score = received.p1s
+			player2.score = received.p2s
+		}
+    }
+	
+	panimate()
+}
+
+if(url2.searchParams.get('type') == 'player2'){
+
+	if(gyroscope){
+		window.addEventListener('deviceorientation', (event) => {
+			var x = event.gamma
+			var y = event.beta
+			var leftmargin = (window.innerWidth - w)/2
+			console.log('x : ' + player2.x + ', y : ' + player2.y + ", xx : " + x + ", yy : " + y)
+	
+			if(w/2 < player2.x && player2.x < w && 0 < player2.y && player2.y < h){
+				if(player2.gamma != x){
+					player2.x = player2.x + x
+					player2.gamma = x
+				}
+				if(player2.beta != y){
+					player2.y = player2.y + y
+					player2.beta = y
+				}
+				socket.send("{\"x\" : " + player2.x + ", \"y\" : " + player2.y + ", \"px\" : " + puck.x + ", \"py\" : " + puck.y + ", \"p1s\" : " + player1.score + ", \"p2s\" : " + player2.score + ", \"uid\" : " + 2 + "}" )
+			}
+	
+			if(player2.x <= w/2){
+				player2.x = w/2 + 1
+			} else if(player2.x >= w){
+				player2.x = w - 1
+			}
+	
+			if(player2.y <= 0){
+				player2.y = 1
+			} else if(player2.y >= h){
+				player2.y = h - 1
+			}
+		})
+	} else {
+		window.addEventListener('mousemove', (event) => {
+			//Need to keep track of the mouse relative to canvas size, not the whole html mouse point
+			var leftmargin = (window.innerWidth - w)/2
+			if((leftmargin < event.x && event.x < (window.innerWidth - leftmargin)) && (30 < event.y && event.y < h + 30) && event.x < window.innerWidth / 2){
+				player2.x = event.x - leftmargin
+				player2.y = event.y - 30
+				socket.send("{\"x\" : " + player2.x + ", \"y\" : " + player2.y + ", \"px\" : " + puck.x + ", \"py\" : " + puck.y + ", \"p1s\" : " + player1.score + ", \"p2s\" : " + player2.score + ", \"uid\" : " + 2 + "}" )
+			}
+		})
+	}
+	
+	
+	
+
+	socket.onmessage = function(receivedMessage) {
+        var received = JSON.parse(receivedMessage.data);
+        console.log("Received: " + JSON.stringify(received));
+        if(received.uid == 1){
+			player1.x = received.x
+			player1.y = received.y
+			puck.x = received.px
+			puck.y = received.py
+			player1.score = received.p1s
+			player2.score = received.p2s
+		}
+    }
+	panimate()
+}	
+
+if(url2.searchParams.get('type') == 'large'){
+	
+	socket.onmessage = function(receivedMessage) {
+        var received = JSON.parse(receivedMessage.data);
+        console.log("Received: " + JSON.stringify(received));
+        if(received.uid == 1){
+			player1.x = received.x
+			player1.y = received.y
+			puck.x = received.px
+			puck.y = received.py
+			player1.score = received.p1s
+			player2.score = received.p2s
+		}
+		if(received.uid == 2){
+			player2.x = received.x
+			player2.y = received.y
+			puck.x = received.px
+			puck.y = received.py
+			player1.score = received.p1s
+			player2.score = received.p2s
+		}
+    }
+	animate()
+}
