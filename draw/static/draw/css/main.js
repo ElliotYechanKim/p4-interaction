@@ -189,16 +189,13 @@ function panimate() {
     requestAnimationFrame(panimate)
 }
 
-var gyroscope = false
+var gyroscope = true
 
 if(url2.searchParams.get('type') == 'player1'){
-	
 	if(gyroscope){
 		window.addEventListener('deviceorientation', (event) => {
 			var x = event.gamma
 			var y = event.beta
-			var leftmargin = (window.innerWidth - w)/2
-			console.log('x : ' + player1.x + ', y : ' + player1.y + ", xx : " + x + ", yy : " + y)
 	
 			if(0 < player1.x && player1.x < w/2 && 0 < player1.y && player1.y < h){
 				if(player1.gamma != x){
@@ -236,8 +233,8 @@ if(url2.searchParams.get('type') == 'player1'){
 	}
 	
 	socket.onmessage = function(receivedMessage) {
-        var received = JSON.parse(receivedMessage.data);
-        console.log("Received: " + JSON.stringify(received));
+		var received = JSON.parse(receivedMessage.data);
+		console.log("Received: " + JSON.stringify(received));
 		if(received.uid == 2){
 			player2.x = received.x
 			player2.y = received.y
@@ -246,7 +243,7 @@ if(url2.searchParams.get('type') == 'player1'){
 			player1.score = received.p1s
 			player2.score = received.p2s
 		}
-    }
+	}
 	
 	panimate()
 }
