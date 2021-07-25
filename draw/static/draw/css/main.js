@@ -61,14 +61,30 @@ if(url2.searchParams.get('type') == 'player2'){
 		var x = event.gamma
 		var y = event.beta
 		var leftmargin = (window.innerWidth - w)/2
+		console.log('x : ' + player2.x + ', y : ' + player2.y + ", xx : " + x + ", yy : " + y)
 
-		x = Math.max(Math.min(x, 30), -30) + player2.x
-		y = Math.max(Math.min(y, 30), -30) + player2.y
-
-		if((leftmargin < x && x < (window.innerWidth - leftmargin)) && (30 < y && y < h + 30)){
-			player2.x = x
-			player2.y = y
+		if(0 < player2.x && player2.x < w && 0 < player2.y && player2.y < h){
+			if(player2.gamma != x){
+				player2.x = player2.x + x
+				player2.gamma = x
+			}
+			if(player2.beta != y){
+				player2.y = player2.y - y
+				player2.beta = y
+			}
 			socket.send("{\"x\" : " + player2.x + ", \"y\" : " + player2.y + ", \"px\" : " + puck.x + ", \"py\" : " + puck.y + ", \"p1s\" : " + player1.score + ", \"p2s\" : " + player2.score + ", \"uid\" : " + 2 + "}" )
+		}
+
+		if(player2.x < 0){
+			player2.x = 1
+		} else if(player2.x > w){
+			player2.x = w - 1
+		}
+
+		if(player2.y < 0){
+			player2.y = 1
+		} else if(player2.y > h){
+			player2.y = h - 1
 		}
 	})
 
@@ -119,6 +135,8 @@ class Player {
         this.dy = undefined
         this.score = 0
 		this.color = undefined
+		this.gamma = 0
+		this.beta = 0
     }
 
 	setting(x, y, color) {
