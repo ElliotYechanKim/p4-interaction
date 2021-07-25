@@ -1,4 +1,5 @@
 const canvas = document.createElement('canvas')
+canvas.setAttribute("id", "table");
 const w = canvas.width = 700
 const h = canvas.height = 500
 document.body.appendChild(canvas)
@@ -21,7 +22,8 @@ var socket = new WebSocket('ws://' + window.location.host + '/ws/draw');
 var url = window.location.href
 const url2 = new URL(url)
 
-
+var myElement = document.getElementById('table');
+var mc = new Hammer(myElement);
 
 class Player {
     constructor() {
@@ -187,7 +189,7 @@ function panimate() {
     requestAnimationFrame(panimate)
 }
 
-var gyroscope = true
+var gyroscope = false
 
 if(url2.searchParams.get('type') == 'player1'){
 	
@@ -223,12 +225,11 @@ if(url2.searchParams.get('type') == 'player1'){
 			}
 		})
 	} else {
-		window.addEventListener('mousemove', (event) => {
-			//Need to keep track of the mouse relative to canvas size, not the whole html mouse point
+		mc.on("panleft panright tap press", function(event) {
 			var leftmargin = (window.innerWidth - w)/2
-			if((leftmargin < event.x && event.x < (window.innerWidth - leftmargin)) && (30 < event.y && event.y < h + 30) && event.x < window.innerWidth / 2){
-				player1.x = event.x - leftmargin
-				player1.y = event.y - 30
+			if((leftmargin < event.center.x && event.center.x < (window.innerWidth - leftmargin)) && (30 < event.center.y && event.center.y < h + 30) && event.center.x < window.innerWidth / 2){
+				player1.x = event.center.x - leftmargin
+				player1.y = event.center.y - 30
 				socket.send("{\"x\" : " + player1.x + ", \"y\" : " + player1.y + ", \"px\" : " + puck.x + ", \"py\" : " + puck.y + ", \"p1s\" : " + player1.score + ", \"p2s\" : " + player2.score + ", \"uid\" : " + 1 + "}" )
 			}
 		})
@@ -284,20 +285,17 @@ if(url2.searchParams.get('type') == 'player2'){
 			}
 		})
 	} else {
-		window.addEventListener('mousemove', (event) => {
-			//Need to keep track of the mouse relative to canvas size, not the whole html mouse point
+		mc.on("panleft panright tap press", function(event) {
+			console.log(event.center.x)
 			var leftmargin = (window.innerWidth - w)/2
-			if((leftmargin < event.x && event.x < (window.innerWidth - leftmargin)) && (30 < event.y && event.y < h + 30) && event.x < window.innerWidth / 2){
-				player2.x = event.x - leftmargin
-				player2.y = event.y - 30
+			if((leftmargin < event.center.x && event.center.x < (window.innerWidth - leftmargin)) && (30 < event.center.y && event.center.y < h + 30) && event.center.x > window.innerWidth / 2){
+				player2.x = event.center.x - leftmargin
+				player2.y = event.center.y - 30
 				socket.send("{\"x\" : " + player2.x + ", \"y\" : " + player2.y + ", \"px\" : " + puck.x + ", \"py\" : " + puck.y + ", \"p1s\" : " + player1.score + ", \"p2s\" : " + player2.score + ", \"uid\" : " + 2 + "}" )
 			}
 		})
 	}
 	
-	
-	
-
 	socket.onmessage = function(receivedMessage) {
         var received = JSON.parse(receivedMessage.data);
         console.log("Received: " + JSON.stringify(received));
