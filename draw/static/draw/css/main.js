@@ -20,7 +20,7 @@ const board = () => {
     ctx.stroke()	
 }
 
-var socket = new WebSocket('ws://' + window.location.host + '/ws/draw');
+var socket = new WebSocket('wss://' + window.location.host + '/ws/draw');
 var url = window.location.href
 const url2 = new URL(url)
 
@@ -195,7 +195,10 @@ function panimate() {
 var gyroscope = true
 
 if(url2.searchParams.get('type') == 'player1'){
-	if(gyroscope){
+function getAccel1() {
+	if(gyroscope) {
+		DeviceMotionEvent.requestPermission().then(response => {
+		if (response == 'granted') {
 		window.addEventListener('deviceorientation', (event) => {
 			var x = event.gamma
 			var y = event.beta
@@ -209,7 +212,8 @@ if(url2.searchParams.get('type') == 'player1'){
 					player1.y = player1.y + y
 					player1.beta = y
 				}
-				socket.send("{\"x\" : " + player1.x + ", \"y\" : " + player1.y + ", \"px\" : " + puck.x + ", \"py\" : " + puck.y + ", \"p1s\" : " + player1.score + ", \"p2s\" : " + player2.score + ", \"uid\" : " + 1 + "}" )
+
+				setTimeout(function(){ socket.send("{\"x\" : " + player1.x + ", \"y\" : " + player1.y + ", \"px\" : " + puck.x + ", \"py\" : " + puck.y + ", \"p1s\" : " + player1.score + ", \"p2s\" : " + player2.score + ", \"uid\" : " + 1 + "}" )}, 3000);
 			}
 	
 			if(player1.x <= 0){
@@ -223,8 +227,12 @@ if(url2.searchParams.get('type') == 'player1'){
 			} else if(player1.y >= h){
 				player1.y = h - 1
 			}
-		})
-	} else {
+		});
+	}
+});
+}
+}
+	if(!gyroscope) {
 		mc.on("panleft panright tap press", function(event) {
 			var leftmargin = (window.innerWidth - w)/2
 			if((leftmargin < event.center.x && event.center.x < (window.innerWidth - leftmargin)) && (30 < event.center.y && event.center.y < h + 30) && event.center.x < window.innerWidth / 2){
@@ -251,12 +259,15 @@ if(url2.searchParams.get('type') == 'player1'){
 	panimate()
 }
 
-if(url2.searchParams.get('type') == 'player2'){
-
-	if(gyroscope){
+if(url2.searchParams.get('type') == 'player2') {
+function getAccel2() {
+	if(gyroscope) {
+		DeviceMotionEvent.requestPermission().then(response => {
+		if (response == 'granted') {
 		window.addEventListener('deviceorientation', (event) => {
 			var x = event.gamma
 			var y = event.beta
+			
 			var leftmargin = (window.innerWidth - w)/2
 			console.log('x : ' + player2.x + ', y : ' + player2.y + ", xx : " + x + ", yy : " + y)
 	
@@ -269,7 +280,9 @@ if(url2.searchParams.get('type') == 'player2'){
 					player2.y = player2.y + y
 					player2.beta = y
 				}
-				socket.send("{\"x\" : " + player2.x + ", \"y\" : " + player2.y + ", \"px\" : " + puck.x + ", \"py\" : " + puck.y + ", \"p1s\" : " + player1.score + ", \"p2s\" : " + player2.score + ", \"uid\" : " + 2 + "}" )
+
+				setTimeout(function(){ socket.send("{\"x\" : " + player2.x + ", \"y\" : " + player2.y + ", \"px\" : " + puck.x + ", \"py\" : " + puck.y + ", \"p1s\" : " + player1.score + ", \"p2s\" : " + player2.score + ", \"uid\" : " + 2 + "}" ) }, 3000);
+				
 			}
 	
 			if(player2.x <= w/2){
@@ -283,14 +296,18 @@ if(url2.searchParams.get('type') == 'player2'){
 			} else if(player2.y >= h){
 				player2.y = h - 1
 			}
-		})
-	} else {
+			});
+		}
+	});
+	}}
+
+    if(!gyroscope) {
 		mc.on("panleft panright tap press", function(event) {
 			console.log(event.center.x)
 			var leftmargin = (window.innerWidth - w)/2
 			if((leftmargin < event.center.x && event.center.x < (window.innerWidth - leftmargin)) && (30 < event.center.y && event.center.y < h + 30) && event.center.x > window.innerWidth / 2){
 				player2.x = event.center.x - leftmargin
-				player2.y = event.center.y - 30
+				player2.y = event.center.y - 30	
 				socket.send("{\"x\" : " + player2.x + ", \"y\" : " + player2.y + ", \"px\" : " + puck.x + ", \"py\" : " + puck.y + ", \"p1s\" : " + player1.score + ", \"p2s\" : " + player2.score + ", \"uid\" : " + 2 + "}" )
 			}
 		})
@@ -309,7 +326,10 @@ if(url2.searchParams.get('type') == 'player2'){
 		}
     }
 	panimate()
-}	
+
+}
+	
+
 
 if(url2.searchParams.get('type') == 'large'){
 	
@@ -332,6 +352,9 @@ if(url2.searchParams.get('type') == 'large'){
 			player1.score = received.p1s
 			player2.score = received.p2s
 		}
+		
+
+
     }
 	animate()
 }
