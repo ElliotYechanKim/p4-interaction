@@ -1,7 +1,7 @@
 const canvas = document.createElement('canvas')
 canvas.setAttribute("id", "table");
-const w = canvas.width = 700
-const h = canvas.height = 500
+const w = canvas.width = 970
+const h = canvas.height = 400
 document.body.appendChild(canvas)
 const ctx = canvas.getContext('2d')
 
@@ -12,10 +12,12 @@ const board = () => {
     ctx.lineTo(w/2,h)
     ctx.rect(0, h/4, w/10, h/2)
     ctx.rect(w - w/10, h/4, w/10, h/2)
-    ctx.font = '48px serif';
-    ctx.fillText(player1.score, w/30, h/10)
-	ctx.fillText(player2.score, 14 * w/15, h/10)
-    ctx.stroke()
+	ctx.fillStyle = "white";
+    ctx.font = '48px Monospace';
+	ctx.strokeStyle = "white"
+    ctx.fillText(player1.score, w/2.4, h/10)
+	ctx.fillText(player2.score, w/1.8, h/10)
+    ctx.stroke()	
 }
 
 var socket = new WebSocket('ws://' + window.location.host + '/ws/draw');
@@ -50,7 +52,8 @@ class Player {
         ctx.arc(this.x, this.y , w*.05 ,0 ,2*Math.PI)
         ctx.fillStyle = this.color
         ctx.fill()
-        ctx.stroke()
+		ctx.strokeStyle = "tan"
+        ctx.stroke()		
     }
 
     update() {
@@ -74,7 +77,7 @@ class Puck {
     draw() {
         ctx.beginPath()
         ctx.arc(this.x, this.y , w*.04 ,0 ,2*Math.PI)
-        ctx.fillStyle = "black"
+        ctx.fillStyle = "#FDCC03"
         ctx.fill()
         ctx.stroke()
     }
@@ -153,9 +156,9 @@ function resetPuck() {
 }
 
 const player1 = new Player
-player1.setting(w/10, h/2, "red")
+player1.setting(w/10, h/2, "#C52C3D")
 const player2 = new Player
-player2.setting(w * 9/10, h/2, "blue")
+player2.setting(w * 9/10, h/2, "#0571BC")
 const puck = new Puck
 
 function animate() {
